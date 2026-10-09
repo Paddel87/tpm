@@ -144,9 +144,9 @@ Es ersetzt **nicht**:
 - [x] Vision von Mensch ausgefüllt
 - [x] Konzeptphase abgeschlossen (Lücken geschlossen, Optionen entschieden)
 - [x] Härtungsphase abgeschlossen (Blocker und Inkonsistenzen geprüft) – 2026-10-09, siehe `docs/haertung-vision.md`
-- [ ] Vorlagen-Set initialisiert (project-context.md, architecture.md, fahrplan.md, decisions.md, blockers.md)
-- [ ] ADR-001 angelegt: Anpassung des Vorlagen-Sets
-- [ ] Datum der Initialisierungs-Abschluss: [YYYY-MM-DD]
+- [x] Vorlagen-Set initialisiert (project-context.md, architecture.md, fahrplan.md, decisions.md, blockers.md)
+- [x] ADR-001 angelegt: Anpassung des Vorlagen-Sets
+- [x] Datum der Initialisierungs-Abschluss: 2026-10-09
 
 **Nach abgeschlossener Initialisierung:** Diese Datei wird nicht mehr verändert.
 Spätere Vision-Erweiterungen oder Pivots werden in einem ADR dokumentiert,
