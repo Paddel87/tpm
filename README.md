@@ -15,3 +15,4 @@ Einstieg – auch nach längeren Pausen: [`docs/project-context.md`](docs/projec
 | [`docs/architecture.md`](docs/architecture.md) | Architektur und offene Architekturfragen |
 | [`docs/VISION.md`](docs/VISION.md) | Ursprüngliche Vision (eingefroren) |
 | [`docs/haertung-vision.md`](docs/haertung-vision.md) | Härtung der Vision mit Faktencheck (eingefroren) |
+| [`docs/recherche-basis.md`](docs/recherche-basis.md) | Recherche zur Basiswahl mit Quellen (eingefroren) |

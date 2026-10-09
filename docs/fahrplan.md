@@ -18,8 +18,9 @@
 
 Ziel: alle offenen Fragen aus `architecture.md` Abschnitt 2 per ADR entschieden, Stack festgelegt.
 
-- [ ] A-1 Basiswahl – Kandidaten praktisch prüfen (Lizenz, Mandantenfähigkeit, Abrechnung)
-- [ ] A-2 Mandanten-Trennung: gemeinsames System oder getrennte Instanzen
+- [x] A-1 Basiswahl – LibreChat + Bifrost OSS (ADR-006, ADR-007)
+- [x] A-2 Mandanten-Trennung – App-Instanz je Mandant (ADR-008)
+- [ ] Proof of Concept P-1 bis P-7 (`architecture.md` Abschnitt 8)
 - [ ] A-3 Schlüsselverwaltung
 - [ ] A-4 Löschkonzept (Backups, Anbieterdaten)
 - [ ] A-5 Abrechnungserfassung und Abgleich

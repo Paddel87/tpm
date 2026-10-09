@@ -4,7 +4,9 @@
      Eine überholte Entscheidung erhält Status „Ersetzt durch ADR-xxx"; die neue verweist zurück.
      Vision-Änderungen und Pivots werden hier dokumentiert, nicht in VISION.md.
      Format je ADR: Status, Datum, Kontext, Entscheidung, Konsequenzen, Verweise.
-     Status: Vorgeschlagen · Angenommen · Ersetzt durch ADR-xxx · Verworfen
+     Status: Vorgeschlagen · Angenommen · Angenommen (PoC-Vorbehalt) · Ersetzt durch ADR-xxx · Verworfen
+     „PoC-Vorbehalt": gilt, solange die Prüfkriterien in architecture.md Abschnitt 8 bestehen;
+     scheitert ein Kriterium, wird die Entscheidung per neuem ADR ersetzt.
      Herkunft: initialisiert am 2026-10-09. -->
 
 ## Übersicht
@@ -16,6 +18,9 @@
 | ADR-003 | Verbrauchsausweis und Abrechnungsgenauigkeit | Angenommen | 2026-10-09 |
 | ADR-004 | Einsichtsmodus des Mandanten-Admins | Angenommen | 2026-10-09 |
 | ADR-005 | Hosting auf gemietetem EU-Server | Angenommen | 2026-10-09 |
+| ADR-006 | LibreChat als Chat-Frontend | Angenommen (PoC-Vorbehalt) | 2026-10-09 |
+| ADR-007 | Bifrost OSS als Gateway | Angenommen (PoC-Vorbehalt) | 2026-10-09 |
+| ADR-008 | App-Instanz je Mandant | Angenommen (PoC-Vorbehalt) | 2026-10-09 |
 
 ---
 
@@ -96,3 +101,61 @@
 **Konsequenzen:** Der Hoster wird Unterauftragsverarbeiter (AVV nötig). Die Wahl des konkreten Hosters erfolgt in Phase 2.
 
 **Verweise:** RB-20, `haertung-vision.md` (C5).
+
+---
+
+## ADR-006: LibreChat als Chat-Frontend
+
+- **Status:** Angenommen (PoC-Vorbehalt)
+- **Datum:** 2026-10-09
+
+**Kontext:** Für A-1 wurden acht Chat-Frontends geprüft (`recherche-basis.md`). Gesucht war eine Basis, die unter eigenem Namen verändert als Dienst betrieben werden darf und Mandanten, delegierte Admins und vollen Funktionsumfang mitbringt.
+
+**Entscheidung:** LibreChat (MIT) wird Basis des Chat-Workspace. Das AGPL-lizenzierte Admin-Panel wird nicht verändert ausgeliefert; die laientaugliche Admin-Oberfläche wird selbst gebaut.
+
+**Konsequenzen:**
+- Versionen eng pinnen, Upstream regelmäßig nachziehen; Pre-release-Takt und Kurs des Eigentümers ClickHouse beobachten (B-09).
+- Selbst zu bauen: Mandanten-Lebenszyklus, Mandanten-Admin-Oberfläche, Branding pro Mandant, Selbstbedienung für eigene API-Schlüssel, Verschlüsselung im Ruhezustand.
+- Meilisearch (Volltextsuche) und die Vektor-Datenbank speichern Klartext; ihr Umgang mit RB-01 ist Teil von A-3.
+- Plan B bei Scheitern: BionicGPT oder kommerzielle LobeHub-Lizenz.
+
+**Verweise:** A-1, `recherche-basis.md` Abschnitt 1.
+
+---
+
+## ADR-007: Bifrost OSS als Gateway
+
+- **Status:** Angenommen (PoC-Vorbehalt)
+- **Datum:** 2026-10-09
+
+**Kontext:** Für Budgets und Kostenerfassung wurden neun Gateways geprüft. Kein Gateway rechnet in Euro, delegierte Admins gibt es nur in Enterprise-Versionen.
+
+**Entscheidung:** Bifrost OSS (Apache-2.0) als einzelne Instanz vor allen Modellanbietern. Abbildung: Customer = Mandant, Team = Gruppe, Virtual Key je Nutzer. Inhaltslogging wird abgeschaltet (`disable_content_logging: true`).
+
+**Konsequenzen:**
+- Alarm auf Buchungen mit 0,00 USD (fehlender Preis) ist Pflicht.
+- Für betreiberbezahlte Schlüssel wird je Mandant ein eigenes Anbieter-Projekt bzw. Workspace angelegt; ein täglicher Abgleich gegen die Kosten-APIs der Anbieter und die Euro-Umrechnung werden selbst gebaut (RB-11, RB-12).
+- Keine Hochverfügbarkeit im OSS; für Stufe 1 akzeptiert.
+- Zweite Wahl bei Scheitern: LiteLLM OSS (Mandant = Team).
+
+**Verweise:** A-1, A-5, `recherche-basis.md` Abschnitte 2 und 3.
+
+---
+
+## ADR-008: App-Instanz je Mandant
+
+- **Status:** Angenommen (PoC-Vorbehalt)
+- **Datum:** 2026-10-09
+
+**Kontext:** A-2 – gemeinsames System oder getrennte Instanzen. LibreChats Mandanten-Isolation ist Beta (Bug #15975 erst im September behoben); ein Datenleck zwischen Mandanten wäre der schwerste Fehler. Gleichzeitig muss eine Person den Betrieb tragen.
+
+**Entscheidung:** Jeder Mandant erhält eine eigene LibreChat-Instanz mit eigener Datenbank und eigenem Datenbank-Zugang. Gemeinsam genutzt werden der Datenbank-Server, das Gateway und der Reverse-Proxy (Subdomain je Mandant).
+
+**Konsequenzen:**
+- Trennung über Prozess- und Datenbankgrenzen, unabhängig von LibreChats Beta-Isolation.
+- Verschlüsselung und Löschung pro Mandant lassen sich auf Datenbankebene ansetzen (A-3, A-4).
+- Branding pro Mandant über die Konfiguration der eigenen Instanz.
+- Updates, Backups und Überwachung laufen per Skript über alle Instanzen (RB-21); Ressourcenbedarf wächst je Mandant.
+- Die Betreiber-Ebene (A-6) muss Instanzen anlegen, konfigurieren und Metadaten einsammeln.
+
+**Verweise:** A-2, B-02, `recherche-basis.md` Abschnitt 4.
