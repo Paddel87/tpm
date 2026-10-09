@@ -15,13 +15,13 @@ Beim Wiedereinstieg in dieser Reihenfolge lesen:
 2. `blockers.md` – was ist offen oder blockiert?
 3. `fahrplan.md` – welche Phase läuft, was ist das nächste Ziel?
 4. `decisions.md` – welche Entscheidungen gelten?
-5. Bei Bedarf: `VISION.md` (ursprüngliche Absicht, eingefroren) und `haertung-vision.md` (Begründungen und Quellen).
+5. Bei Bedarf: `VISION.md` (ursprüngliche Absicht, eingefroren), `haertung-vision.md` (Härtung mit Quellen) und `recherche-basis.md` (Basiswahl mit Quellen).
 
 ## 2. Aktueller Stand
 
 - **Datum:** 2026-10-09
-- **Phase:** Modus 1 (Konzeptphase) abgeschlossen, Härtung abgeschlossen, Vorlagen-Set initialisiert.
-- **Nächster Schritt:** Modus 2 (Architektur) starten – die offenen Architekturfragen aus `architecture.md` Abschnitt 2 entscheiden, beginnend mit der Basiswahl (A-1) und der Mandanten-Trennung (A-2).
+- **Phase:** Modus 2 (Architektur) läuft. Basis und Mandanten-Trennung entschieden (ADR-006 bis ADR-008, unter PoC-Vorbehalt).
+- **Nächster Schritt:** A-3 (Schlüsselverwaltung und Verschlüsselung im Ruhezustand) entscheiden; parallel Proof of Concept P-1 bis P-7 vorbereiten (`architecture.md` Abschnitt 8).
 - **Code:** noch keiner.
 
 ## 3. Projekt in einem Satz
@@ -77,13 +77,13 @@ Jede Randbedingung ist so formuliert, dass sie prüfbar ist. Spalte „Quelle" v
 
 ## 6. Stack
 
-Noch nicht entschieden – Gegenstand von Modus 2. Entscheidungen werden in `decisions.md` festgehalten und hier zusammengefasst.
+Teilweise entschieden (unter PoC-Vorbehalt). Entscheidungen werden in `decisions.md` festgehalten und hier zusammengefasst.
 
 | Bereich | Wahl | ADR |
 |---|---|---|
-| Chat-Frontend / Basis | offen | – |
-| Gateway / Abrechnung | offen | – |
-| Datenbank | offen | – |
+| Chat-Frontend / Basis | LibreChat (MIT), eine Instanz je Mandant | ADR-006, ADR-008 |
+| Gateway / Abrechnung | Bifrost OSS (Apache-2.0), Inhaltslogging aus | ADR-007 |
+| Datenbank | MongoDB (durch LibreChat vorgegeben), eigene Datenbank je Mandant; dazu Meilisearch und Postgres/pgvector | ADR-006, ADR-008 |
 | Verschlüsselung / Schlüsselverwaltung | offen | – |
 | Hoster | offen (EU) | ADR-005 |
 

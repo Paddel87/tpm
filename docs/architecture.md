@@ -8,31 +8,51 @@
 
 ## 1. Status
 
-Noch keine Architektur entschieden. Modus 2 startet mit den offenen Fragen in Abschnitt 2.
+Modus 2 läuft. Entschieden (unter PoC-Vorbehalt): Basis (A-1 → ADR-006, ADR-007) und Mandanten-Trennung (A-2 → ADR-008). Offen: A-3 bis A-7.
 
 ## 2. Offene Architekturfragen
 
 | ID | Frage | Optionen bisher | Abhängig von | Herkunft |
 |---|---|---|---|---|
-| A-1 | Welche Basis wird verwendet? | (a) Chat-Frontend + Gateway mit Budgets (Bifrost frei, LiteLLM Enterprise), Mandanten-Ebene selbst bauen; (b) LibreChat mit Mandantenisolation (ab v0.8.7/v0.8.8, noch unreif); (c) Eigenbau | RB-22 (Lizenzen) | H3, V8 |
-| A-2 | Mandanten in einem gemeinsamen System oder in getrennten Instanzen? | gemeinsam / Instanz je Mandant | A-1, RB-08, RB-21 | V7, V9, H2 (B3) |
-| A-3 | Wie werden Mandantenschlüssel verwaltet und wer hält sie? | offen | RB-01, RB-06 | ADR-002 |
+| A-3 | Wie werden Mandantenschlüssel verwaltet und wer hält sie? Wie werden MongoDB (Community: nur explizite Feldverschlüsselung), Meilisearch und Vektor-DB im Ruhezustand geschützt? | z. B. App-seitige Verschlüsselung mit Mandantenschlüssel aus einem KMS; Verschlüsselung der Datenträger je Mandant; Meilisearch abschalten | RB-01, RB-06, ADR-008 | ADR-002, ADR-006 |
 | A-4 | Wie wird Löschung in Backups und beim Anbieter umgesetzt? | z. B. Vernichtung des Mandanten- bzw. Nutzerschlüssels (Kryptoshredding), Zero-Data-Retention | A-3, RB-04 | H2 (B4) |
-| A-5 | Wie wird die Abrechnung erfasst und gegen Anbieterrechnungen abgeglichen? | Gateway-Preistabellen + eigener Abgleich | A-1, RB-10 bis RB-12 | ADR-003 |
-| A-6 | Wie wird die Betreiber-Ebene (Vorlagen, Grenzen, Metadaten-Überblick) über alle Mandanten umgesetzt? | offen | A-2 | V3 |
+| A-5 | Wie wird die Abrechnung erfasst und gegen Anbieterrechnungen abgeglichen? | Rahmen gesetzt (ADR-007): Bifrost-Echtzeitkosten, ein Anbieter-Projekt je Mandant, täglicher Abgleich gegen Kosten-APIs, Monatsrechnung maßgeblich. Offen: Umsetzung, Kursquelle | RB-10 bis RB-12 | ADR-003, ADR-007 |
+| A-6 | Wie wird die Betreiber-Ebene (Instanzen anlegen, Vorlagen, Grenzen, Metadaten-Überblick) über alle Mandanten-Instanzen umgesetzt? | offen | ADR-008 | V3 |
 | A-7 | Wie wird das manipulationssichere Zugriffsprotokoll (RB-02) umgesetzt? | offen | – | ADR-002 |
 
 ## 3. Systemüberblick
 
-<!-- Nach Entscheidung von A-1 und A-2: Bausteine, Verantwortlichkeiten, Datenflüsse. -->
+```
+Browser ──► Reverse-Proxy (TLS, Subdomain je Mandant)
+              │
+              ├──► LibreChat-Instanz Mandant A ──┐
+              ├──► LibreChat-Instanz Mandant B ──┤
+              │                                  ├──► Bifrost (Gateway) ──► Modellanbieter
+              │                                  │     Customer = Mandant      (Projekt/Workspace
+              │                                  │     Team = Gruppe            je Mandant oder
+              │                                  │     Virtual Key je Nutzer    eigener Schlüssel)
+              │                                  │
+              ├──► Mandanten-Admin-Oberfläche ───┤  (Eigenbau, laientauglich)
+              └──► Betreiber-Ebene ──────────────┘  (Eigenbau: Instanzen, Vorlagen, Grenzen, Metadaten)
 
-Offen.
+DB-Server (gemeinsam): je Mandant eigene Datenbank und eigener Zugang
+Abrechnungsdienst (Eigenbau): Abgleich Bifrost ↔ Anbieter-Kosten-APIs, EUR-Umrechnung
+```
+
+| Baustein | Herkunft | Verantwortung |
+|---|---|---|
+| Reverse-Proxy | Standardkomponente (offen) | TLS, Zuordnung Subdomain → Mandanten-Instanz |
+| LibreChat je Mandant | LibreChat (ADR-006) | Chat, Agenten, Wissen, MCP, Teilen in Gruppen |
+| Bifrost | Bifrost OSS (ADR-007) | Budgets, Modell-Freigaben, Kostenerfassung; kein Inhaltslogging |
+| Mandanten-Admin-Oberfläche | Eigenbau | Nutzer, Gruppen, Rechte, Kontingente, Vorlagen, eigene Schlüssel, Einsichtsmodus, Branding |
+| Betreiber-Ebene | Eigenbau | Mandanten anlegen und sperren, Vorlagen, erlaubte Anbieter und Modelle, Preise, Metadaten-Überblick |
+| Abrechnungsdienst | Eigenbau | täglicher Abgleich, Monatsabschluss, EUR-Umrechnung |
 
 ## 4. Mandanten-Trennung
 
-<!-- Nach Entscheidung von A-2 und A-3. Muss RB-08 nachweisbar erfüllen. -->
+Entschieden in ADR-008: eigene LibreChat-Instanz, eigene Datenbank und eigener Datenbank-Zugang je Mandant; gemeinsam sind DB-Server, Gateway und Reverse-Proxy. Im Gateway ist jeder Mandant ein eigener Customer mit eigenen Virtual Keys.
 
-Offen.
+Offen: Trennung von Meilisearch und Vektor-Datenbank je Mandant (eigener Index bzw. eigene Datenbank) – mit A-3 klären.
 
 ## 5. Daten und Verschlüsselung
 
@@ -51,3 +71,17 @@ Offen.
 <!-- Updates, Backups, Überwachung, Zugriffsprotokoll. Muss RB-02, RB-20 und RB-21 erfüllen. -->
 
 Offen.
+
+## 8. Proof of Concept (Vorbehalt für ADR-006 bis ADR-008)
+
+Alle Kriterien müssen bestehen; scheitert eines, wird die betroffene Entscheidung per neuem ADR ersetzt.
+
+| ID | Prüfkriterium | betrifft |
+|---|---|---|
+| P-1 | Zwei LibreChat-Instanzen mit getrennten Datenbanken auf einem Server; keine Daten der einen Instanz in der anderen sichtbar. | ADR-008 |
+| P-2 | Ressourcenbedarf je Instanz gemessen; Hochrechnung für 10 Mandanten passt auf einen bezahlbaren Server. | ADR-008 |
+| P-3 | Bifrost OSS: Budgets auf Customer-, Team- und Virtual-Key-Ebene greifen und sperren bei Überschreitung. | ADR-007 |
+| P-4 | Bifrost: mit `disable_content_logging: true` landen keine Prompts oder Antworten in der Datenbank. | ADR-007, RB-03 |
+| P-5 | Bifrost: Kosten für Anfragen mit Cache und Reasoning (Anthropic, OpenAI, Gemini) weichen höchstens 2 % von den Anbieter-Kosten-APIs ab. | ADR-007, RB-11 |
+| P-6 | LibreChat übergibt Nutzer- bzw. Virtual-Key-Zuordnung zuverlässig an Bifrost, sodass jede Anfrage dem richtigen Nutzer, der Gruppe und dem Mandanten zugeordnet ist. | ADR-006, ADR-007 |
+| P-7 | Branding (Name, Logo) je LibreChat-Instanz ohne Codeänderung setzbar, oder Aufwand der Änderung abgeschätzt. | ADR-006 |
